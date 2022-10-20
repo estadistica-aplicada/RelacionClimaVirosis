@@ -3,14 +3,15 @@ $spacer: 1.2rem !default;
 
 $headings-margin-bottom:      $spacer * .9 !default;
 
+
+
 // fonts
 $presentation-heading-color: #546e7a;
 $font-family-sans-serif: "Roboto", Helvetica, sans-serif;
 $font-family-monospace: "Roboto Mono", monospace;
 
 $link-color: #546e7a;
-$font-size-base:              1.2rem !default; // Assumes the browser default, typically `16px`
-$presentation-font-size-root: 30px;
+$presentation-font-size-root: 32px;
 $presentation-title-slide-text-align: center;
 $presentation-h1-font-size: 2.1em;
 $presentation-h2-font-size: 1.9em;

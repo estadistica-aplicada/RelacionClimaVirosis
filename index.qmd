@@ -18,7 +18,7 @@ format:
 ## {background-color="black" background-image="img/logo25.png" background-size="cover"}
 
 
-# Relación clima-virosis en cultivos: <br> Desde el Aprendizaje Automático a la Modelación Estadística
+# Relación clima-virosis en cultivos: <br> Desde el Aprendizaje Automático a la Modelación Estadística {font-size='0.5em'}
 
 
 Prof. Mónica Balzarini
@@ -244,7 +244,7 @@ conjunto de datos globalmente completo y consistente
     * Temperatura de la superficie de la tierra y de capas de 0 a 289 cm de profundidad
     * Temperatura punto de rocío
     * Total precipitaciones
-    * Volumen de agua en la capa 1, 2, 3 y 4 del suelo 
+    * Volumen de agua en suelo 
     * Total evaporación
     
 :::
@@ -435,7 +435,7 @@ form <- y ~ -1 +
 ```{r}
 #| layout-ncol: 2
 #| tbl-cap: 
-#|   - "Distribuci[on a posteriori"
+#|   - "Distribución a posteriori"
 #| tbl-subcap: 
 #|   - "Coeficientes de regresión"
 #|   - "Hiperparámetros"
@@ -482,7 +482,7 @@ kableExtra::kable(
 
 # result <- readRDS('results/inla_results.RDS')
 
-param <- c('Range for s1', 'Stdev for s1', 'Range for s2', 'Stdev for s2', 'Beta for s12')
+param <- c('Range s1', 'Stdev s1', 'Range s2', 'Stdev s2', 'Beta s12')
 
 
 stdDev <- c(3793.68,
@@ -514,7 +514,7 @@ kableExtra::kable(
 
 
 
-## Validación del modelo
+## Validación del modelo 
 
 Validación cruzada k-fold, con un k = 10, para cada cultivo.
 
@@ -532,16 +532,27 @@ Trigo <- c(#'Maíz',
 
 df <- rbind(Maíz, Trigo)
 
-kableExtra::kable(df,
+kableExtra::kable(df[,1:4],
                   escape = FALSE,
                   format = "html",
                   digits = 3) |>
   kableExtra::kable_paper("hover", full_width = F) |>
-  kableExtra::add_header_above(c(" ", colnames_1))  |>
-  kableExtra::add_header_above(c(" ", "Marginal" = 4, "Conjunta" = 4), align = "l")  |>
-  kableExtra::add_header_above(c("WSMV" = 9)) |>
-  kableExtra::kable_paper("striped", full_width = F)
+  kableExtra::add_header_above(c(" ", colnames_1[1:4]))  |>
+  kableExtra::add_header_above(c("Marginal" = 5), align = "l")  |>
+  kableExtra::kable_paper("striped", full_width = F, font_size = "0.8em")
 
+```
+
+
+```{r}
+kableExtra::kable(df[,5:8],
+                  escape = FALSE,
+                  format = "html",
+                  digits = 3) |>
+  kableExtra::kable_paper("hover", full_width = F) |>
+  kableExtra::add_header_above(c(" ", colnames_1[5:8]))  |>
+  kableExtra::add_header_above(c("Conjunta" = 5), align = "l")  |>
+  kableExtra::kable_paper("striped", full_width = F, font_size = "0.8em")
 ```
 
 
