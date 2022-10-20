@@ -165,10 +165,8 @@ en conjunto.
 # Ensamblando aprendizaje automático y modelación estadística {background-color="#546e7a"}
 
 
-<!-- wheat streak mosaic virus (WSMV) -->
 
-
-# High Plains Wheat Mosaic Virus (HPWMoV) en cultivos de maíz y trigo en función del clima
+# Wheat Streak Mosaic Virus (WSMV)  en cultivos de maíz y trigo en función del clima
 
 ```{r}
 
@@ -216,14 +214,14 @@ alineadas (posicionadas en el mismo sitio)
 
 ```{r}
 tm_shape(hpv_maiz) +
-  tm_dots("HPV", 
-          group = "HPV Maíz",
-          title = "HPV en Maíz", 
+  tm_dots("WSMV", 
+          group = "WSMV Maíz",
+          title = "WSMV en Maíz", 
           pal = "Dark2") +
   tm_shape(hpv_trigo) +
-  tm_dots("HPV", 
-          group = "HPV Trigo",
-          title = "HPV en Trigo", 
+  tm_dots("WSMV", 
+          group = "WSMV Trigo",
+          title = "WSMV en Trigo", 
           pal = "Set1")
 ```
 
@@ -409,144 +407,17 @@ A priori de coeficientes de regresión sugeridas por modelos marginales.
 #| echo: true
 #| eval: false
 form <- y ~ -1 +
-  intercept_hpv_maiz +
-  intercept_hpv_trigo +
+  intercept_wsmv_maiz+
+  intercept_wsmv_trigo +
   
-  Precipitacion_Jan_maiz + 
-  Punto.rocio_May_maiz + 
-  anio_maiz + 
-  
-  Precipitacion_Jan_trigo + 
-  Temperatura_Jun_trigo +
+  total_precipitation_Mar_trigo +
+  total_precipitation_ene_trigo+
+  total_precipitation_Ago_maiz +
+  Viento_sep_maiz+ 
   
   f(s1, model = spde) + 
   f(s2, model = spde) + 
   f(s12, copy = "s1", fixed = FALSE)
-```
-
-```{r}
-#| eval: false
-#| 
-inla.setOption(inla.mode = 'experimental')
-
-trigo_hpv_sf2 <- st_read("data/trigo_hpv.gpkg", quiet = TRUE)
-st_geometry(trigo_hpv_sf2) <- 'geometry'
-
-limites2 <- st_read("data/limites2.gpkg", quiet = TRUE)
-st_geometry(limites2) <- 'geometry'
-
-base_maiz <- trigo_hpv_sf2 |>
-  drop_na(HPV_maiz)
-
-base_maiz <- base_maiz[!base_maiz$Provincia %in%
-                         c('Catamarca',
-                           'Santa Fe',
-                           'Tucumán',
-                           'Chaco',
-                           'Santiago del Estero',
-                           'San Luis',
-                           'Jujuy'), ]
-
-loc.maiz <- base_maiz |>
-  st_coordinates()
-
-
-base_trigo <- trigo_hpv_sf2 |>
-  drop_na(HPV_trigo)
-
-loc.trigo <- base_trigo |>
-  st_coordinates()
-
-loc.obs <-
-  rbind(st_coordinates(base_trigo), st_coordinates(base_maiz))
-
-boundary <- list(inla.nonconvex.hull(loc.obs, 2),
-                 inla.nonconvex.hull(loc.obs, 4))
-
-mesh <- inla.mesh.2d(
-  boundary = boundary,
-  max.edge = c(0.4, 0.8),
-  min.angle = c(30, 21),
-  max.n = c(480, 160),
-  max.n.strict = c(128000, 128000),
-  cutoff = 0.03,
-  offset = c(2, 4)
-)
-
-spde <- inla.spde2.pcmatern(
-  mesh = mesh,
-  prior.range = c(1000, 0.01),
-  # P(range < rangemin) = 0.01
-  prior.sigma = c(10, 0.01)
-)
-
-Amaiz <- inla.spde.make.A(mesh, loc.maiz)
-
-Atrigo <- inla.spde.make.A(mesh, loc.trigo)
-
-stackMaiz <- inla.stack(
-  data = list(y = cbind(NA, base_maiz$HPV_maiz)),
-  A = list(Amaiz, 1),
-  effects = list(
-    list(s1 = 1:spde$n.spde),
-    list(
-      intercept_hpv_trigo = rep(1, nrow(base_maiz)),
-      
-      Precipitacion_Jan_maiz  = base_maiz$Precipitacion_Jan,
-      Punto.rocio_May_maiz = base_maiz$Punto.rocio_May,
-      anio_maiz = base_maiz$Año.de.Colecta,
-      
-      Precipitacion_Jan_trigo  = rep(NA, nrow(base_maiz)),
-      Temperatura_Jun_trigo = rep(NA, nrow(base_maiz))
-    )
-    
-  ),
-  tag = "WSMV_maiz"
-)
-
-
-stackTrigo <- inla.stack(
-  data = list(y = cbind(base_trigo$HPV_trigo, NA)),
-  A = list(Atrigo, 1),
-  effects = list(
-    list(s2 = 1:spde$n.spde, s12 = 1:spde$n.spde),
-    list(
-      intercept_hpv_maiz = rep(1, nrow(base_trigo)),
-      
-      Precipitacion_Jan_maiz  = rep(NA, nrow(base_trigo)),
-      Punto.rocio_May_maiz = rep(NA, nrow(base_trigo)),
-      anio_maiz = rep(NA, nrow(base_trigo)),
-      
-      Precipitacion_Jan_trigo = base_trigo$Precipitacion_Jan,
-      Temperatura_Jun_trigo = base_trigo$Temperatura_Jun
-    )
-  ),
-  tag = "WSMV_trigo"
-)
-
-
-stack <- inla.stack(stackTrigo, stackMaiz)
-
-set.seed(123)
-result <- inla(
-  form,
-  rep('binomial', 2),
-  data = inla.stack.data(stack),
-  control.predictor = list(
-    compute = TRUE,
-    A = inla.stack.A(stack),
-    link = 1
-  ),
-  
-  control.compute = list(
-    return.marginals = TRUE,
-    return.marginals.predictor = TRUE,
-    hyperpar = TRUE
-  )
-)
-
-saveRDS(result,
-        'results/inla_results.RDS')
 ```
 
 ---
@@ -555,16 +426,47 @@ saveRDS(result,
 
 #### Coeficientes de regresión
 
+
 ```{r, results='asis'}
-result <- readRDS('results/inla_results.RDS')
+
+
+
+param <-
+  c(
+    'intercept_wsmv_maiz',
+    'intercept_wsmv_trigo',
+    'total_precipitation_Mar_trigo',
+    'total_precipitation_ene_trigo',
+    'total_precipitation_Ago_maiz',
+    'Viento_sep_maiz'
+  )
+
+
+media <- c(0.034,
+           -0.058,
+           -0.189,
+           -0.057,
+           0.199,
+           -0.630)
+
+stdDev <- c(31.29,
+            31.19,
+            0.040,
+            0.040,
+            0.120,
+            0.118)
+
+param <- data.frame("Coeficiente" = param, "Media" = media, "SD" = stdDev)
+
 
 kableExtra::kable(
-  result$summary.fixed[, -ncol(result$summary.fixed)],
+  param,
   escape = FALSE,
   format = "html",
-  digits = 3
+  digits = 2
 ) |>
  kableExtra::kable_paper("striped", full_width = F)
+
 
 ```
 
@@ -575,13 +477,34 @@ kableExtra::kable(
 #### Hiperparámetros
 
 ```{r, results='asis'}
+
+# result <- readRDS('results/inla_results.RDS')
+
+param <- c('Range for s1', 'Stdev for s1', 'Range for s2', 'Stdev for s2', 'Beta for s12')
+
+
+stdDev <- c(3793.68,
+            8.82,
+            4088.44,
+            30.15,
+            0.316)
+
+media <- c(4046.55,
+            1.99,
+            4148.95,
+            4.19,
+            0.99)
+hyperparam <- data.frame("Coeficiente" = param, "Media" = media, "SD" = stdDev)
+
+
 kableExtra::kable(
-  result$summary.hyperpar,
+  hyperparam,
   escape = FALSE,
   format = "html",
-  digits = 3
+  digits = 2
 ) |>
  kableExtra::kable_paper("striped", full_width = F)
+
 
 ```
 
@@ -598,24 +521,10 @@ Medidas del desempeño predictivo
 colnames_1 <- rep(c("Precisión", "Sensibilidad", "Especificidad", "AUC"), 2)
 
 Maíz <- c(#'Trigo',
-          58.12,
-          53.57,
-          59.55,
-          0.565,
-          59.87,
-          55.42,
-          60.87,
-          0.581)
+          79.55,	76.39,	84.40,	0.803,	89.04,	83.67,	99.10,	0.918)
 
 Trigo <- c(#'Maíz',
-          57.43,
-          58.38,
-          56.69,
-          0.575,
-          63.64,
-          66.67,
-          61.57,
-          0.641)
+          60.36,	60.20,	61.70,	0.609,	67.26,	66.28,	70.59,	0.684)
 
 df <- rbind(Maíz, Trigo)
 
@@ -626,7 +535,7 @@ kableExtra::kable(df,
   kableExtra::kable_paper("hover", full_width = F) |>
   kableExtra::add_header_above(c(" ", colnames_1))  |>
   kableExtra::add_header_above(c(" ", "Marginal" = 4, "Conjunta" = 4), align = "l")  |>
-  kableExtra::add_header_above(c("HPWMoV" = 9)) |>
+  kableExtra::add_header_above(c("WSMV" = 9)) |>
   kableExtra::kable_paper("striped", full_width = F)
 
 ```
