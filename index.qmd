@@ -335,10 +335,23 @@ tmap_animation(mitmap, filename = 'img/animacion_Temp.gif')
 
 ---
 
+::: {.columns}
 
-![](img/animacion_Temp.gif)
+::: {.column width="50%"}
 
-![](img/animacion_Temp.gif)ba
+![](img/anim_file_temperature.gif)
+
+:::
+
+::: {.column width="50%"}
+
+![](img/anim_file_pp.gif)
+
+:::
+
+:::
+
+
 
 
 ## Selección de variables con Aprendizaje Automático
@@ -349,11 +362,11 @@ boruta y la selección de variables stepwise forward.
 
 ### Resultados
 
-Predicen presencia del virus en maíz las precipitaciones elevadas en el 
-mes de enero y temperatura de punto de rocio alta en el mes de mayo.
+Predicen presencia del virus en maíz las precipitaciones acumuladas en el 
+mes de agosto y la velocidad del viento promedio del mes de septiembre.
 
-Predicen presencia de virus en trigo las precipitaciones elevadas en enero 
-y temperaturas bajas en junio.
+Predicen presencia de virus en trigo las precipitaciones acumuladas en enero 
+y marzo.
 
 
 ## Modelación Estadística con Modelos Jerárquicos 
@@ -372,13 +385,13 @@ y temperaturas bajas en junio.
 
 $$
 \log{\left(\frac{p_{i.m}(S)}{1-p_{i.m}(S)}\right)} = 
-\alpha_{maíz} + x_{i1}(S)\beta_{1} + x_{i2}(S)\beta_{2} + x_{i3}(S)\beta_{3} +
+\alpha_{maíz} + x_{i1}(S)\beta_{1} + x_{i2}(S)\beta_{2} +
 Z_{m}(S) + e_{m}(S)
 $$
 
 $$
 \log{\left(\frac{p_{i.t}(S)}{1-p_{i.t}(S)}\right)} = 
-\alpha_{trigo} + x_{i4}(S)\beta_{4} + x_{i5}(S)\beta_{5} + \lambda Z_{m}(S) +
+\alpha_{trigo} + x_{i3}(S)\beta_{3} + x_{i4}(S)\beta_{4} + \lambda Z_{m}(S) +
 Z_{t} (S) + e_{t} (S)
 $$
 
@@ -403,10 +416,10 @@ form <- y ~ -1 +
   intercept_wsmv_maiz+
   intercept_wsmv_trigo +
   
-  total_precipitation_Mar_trigo +
-  total_precipitation_Ene_trigo+
   total_precipitation_Ago_maiz +
   viento_Sep_maiz+ 
+  total_precipitation_Mar_trigo +
+  total_precipitation_Ene_trigo+
   
   f(s1, model = spde) + 
   f(s2, model = spde) + 
@@ -433,9 +446,9 @@ param <-
   c(
     'intercept_wsmv_maiz',
     'intercept_wsmv_trigo',
+    'total_precipitation_Ago_maiz',
     'total_precipitation_Mar_trigo',
     'total_precipitation_Ene_trigo',
-    'total_precipitation_Ago_maiz',
     'viento_Sep_maiz'
   )
 
@@ -458,7 +471,7 @@ param <- data.frame("Coeficiente" = param, "Media" = media, "SD" = stdDev)
 
 
 kableExtra::kable(
-  param,
+  param[c(1,2,3,6,4,5), ],
   escape = FALSE,
   format = "html",
   digits = 2
