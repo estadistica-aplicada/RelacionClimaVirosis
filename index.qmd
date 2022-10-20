@@ -1,0 +1,544 @@
+---
+format: 
+    revealjs:
+      echo: false
+      cache: false
+      center: true
+      theme: style/theme.scss
+      logo: img/logomea.png
+      title-slide-attributes:
+          data-background-image: img/logo25.png
+          data-background-size: cover  
+      revealjs-plugins:
+         - plugins
+---
+
+
+
+## {background-color="black" background-image="img/logo25.png" background-size="cover"}
+
+
+# Relación clima-virosis en cultivos: <br> Desde el Aprendizaje Automático a la Modelación Estadística
+
+
+Prof. Mónica Balzarini
+
+Maestría en Estadística Aplicada
+
+Universidad Nacional de Córdoba
+
+FCA - CONICET
+
+
+<!-- :::: {.columns} -->
+
+<!-- ::: {.column width="50%"} -->
+
+<!-- ::: {style="text-align: center"} -->
+
+<!-- Prof. Mónica Balzarini -->
+
+<!-- Maestría en Estadística Aplicada -->
+
+<!-- Universidad Nacional de Córdoba -->
+
+<!-- FCA - CONICET -->
+
+<!-- ::: -->
+
+
+
+
+<!-- ::: -->
+
+<!-- ::: {.column width="50%"} -->
+
+<!-- ![](img/ufyma.png) -->
+
+<!-- ::: -->
+
+<!-- :::: -->
+
+
+
+
+# ¿Aprendizaje Automático es Estadística? {background-color="#546e7a"}
+
+--- 
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**Estadística** 
+
+Disciplina científica que aborda la variabilidad, el pensamiento bajo 
+incertidumbre y la generación de conocimientos desde los datos.  
+
+Analiza el proceso aleatorio que genera los datos siguiendo leyes de probabilidad.
+
+Modela variabilidad para inferir relaciones desde los datos y predecir valores futuros.
+
+:::
+
+::: {.column width="50%"}
+
+**Aprendizaje automático**
+
+Rama de la Inteligencia Artificial que permite que las máquinas aprendan a
+identificar patrones en los datos para predecir valores futuros. 
+
+Base en teoría del aprendizaje estadístico: datificar el entorno, separar patrón
+de ruido, extraer conclusiones y predecir resultados.
+
+:::
+
+::::
+
+
+
+:::{.callout-note appearance="simple"}
+
+El AA, mayoritariamente, es estadística computacional con fines predictivos
+
+:::
+
+
+## ¿Qué es la Ciencia de Datos? {background-color="#546e7a"}
+
+--- 
+
+
+## "Ciencia de datos" se define como lo que hacen los "científicos de datos"
+
+
+
+Adquisición y manipulación de datos, 
+
+Aplicación de técnicas de análisis de datos (núcleo: Estadística y AA)
+
+Interpretación, comunicación y visualización de los resultados. 
+
+
+::: {.callout-note icon=false}
+
+## Perfil del científico de datos
+
+Generador (hacker) de bases de datos, analista, comunicador y consejero confiable
+
+:::
+
+
+## ¿Por qué está de moda la Ciencia de Datos? 
+ 
+Los avances tecnológicos permiten ganar capacidades estadístico-computacionales,
+creativas y comunicacionales más rápidamente y esta disponibilidad de talentos 
+coincide temporalmente con la transformación digital y la datificación.
+
+Grandes volúmenes de datos almacenados a gran escala.
+
+Sabermetría. Números vencen a la intuición.
+
+Datos y códigos abiertos (utilizados, reutilizados y redistribuidos libremente)
+hacen los análisis reproducibles y facilitan la adaptación del análisis a nuevos
+excenarios.
+
+
+
+## ¿Aprendizaje automático o modelación estadística? {background-color="#546e7a"}
+
+## ¿Cuál es mejor? 
+
+El fin (exploratorio/inferencial/predictivo) así como el volumen y 
+conceptualización de los datos (población/muestra) guían la elección de técnicas
+de análisis.
+
+Multiplicidad de técnicas de análisis de datos con resultados mayoritariamente
+convergentes o complementarios que deben ser entendidos como elementos que operan
+en conjunto.
+
+
+# Ensamblando aprendizaje automático y modelación estadística {background-color="#546e7a"}
+
+
+
+# Wheat Streak Mosaic Virus (WSMV)  en cultivos de maíz y trigo en función del clima
+
+```{r}
+
+suppressPackageStartupMessages({
+library(sf)
+library(dplyr)
+library(tmap) 
+library(tidyr)
+})
+# source("src/spde-book-functions.R")
+tmap_mode("view")
+
+trigo_maiz <- st_read("data/trigo_maiz_26_09_22.gpkg",quiet = TRUE)
+st_geometry(trigo_maiz) <- 'geometry' 
+trigo_maiz$WSMV <- as.factor(trigo_maiz$WSMV)
+  
+
+hpv_maiz <- trigo_maiz |> 
+  filter(Especie == "Maíz" & !is.na(WSMV))
+hpv_maiz <-
+  hpv_maiz[!hpv_maiz$Provincia %in%
+              c('Catamarca',
+               'Santa Fe',
+               'Tucumán',
+               'Chaco',
+               'Santiago del Estero',
+               'San Luis','Jujuy'),]
+
+
+hpv_trigo <- trigo_maiz |> 
+  filter(Especie == "Trigo" & !is.na(WSMV)) 
+
+```
+
+
+## Datos del virus
+
+* Presencia/ausencia georreferenciados desde que el virus entró al país 
+
+* Total de registros: `r sum(!is.na(hpv_maiz$WSMV))` en maíz y `r sum(!is.na(hpv_trigo$WSMV))` en trigo. Las observaciones no están 
+alineadas (posicionadas en el mismo sitio)
+
+```{r}
+tm_shape(hpv_maiz) +
+  tm_dots("WSMV", 
+          group = "WSMV Maíz",
+          title = "WSMV en Maíz", 
+          pal = "Dark2") +
+  tm_shape(hpv_trigo) +
+  tm_dots("WSMV", 
+          group = "WSMV Trigo",
+          title = "WSMV en Trigo", 
+          pal = "Set1")
+```
+
+
+## Datos del clima
+
+Derivados de Imágenes Satelitales: variables meteorológicas extraídas desde 
+el producto ERA5 en formato de valores mensuales.
+
+ _ERA5 Land (datos mensuales): ECMWF/ERA5/MONTHLY_
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+- Combina datos de modelos físicos con observaciones de todo el mundo en un 
+conjunto de datos globalmente completo y consistente 
+- Resolución: 11.13  km
+- Disponibles desde 1981 hasta tres meses en tiempo real
+
+:::
+
+::: {.column width="50%"}
+
+- Bandas disponibles: 50. Entre éstas:
+    * Temperatura del aire a 2 m
+    * Temperatura de la superficie de la tierra y de capas de 0 a 289 cm de profundidad
+    * Temperatura punto de rocío
+    * Total precipitaciones
+    * Volumen de agua en la capa 1, 2, 3 y 4 del suelo 
+    * Total evaporación
+    
+:::
+
+::::
+
+
+## Convirtiendo dato climático a biometerológico
+
+Descarga con: Google Earth Engine, python conectado a GEE, R conectado a python y GEE
+
+Agregadas según momentos del ciclo de cultivo conformaron 117 variables 
+biometeorológicas. Se obtuvieron valores mensuales para el periodo anual
+(Agosto de un año a Agosto del año siguiente) que abarca los dos cultivos 
+en los que se detecta el virus 
+
+
+## Variabilidad espacio-temporal de variables climáticas {background-color="#546e7a"}
+
+
+```{r}
+#| eval: false
+
+
+tmap_mode('plot')
+
+my_temperatur_pallete <-
+  c("#1E5CB4", "#1E5CB4", "#1E5CB4", "#1D5DB4", "#1B63B9", "#186ABE",
+"#176FC2", "#176FC2", "#176FC2", "#1474C6", "#1080CE", "#0C8BD6",
+"#0B8FD9", "#0B8FD9", "#0B8FD9", "#0894DD", "#069BE2", "#04A2E7",
+"#04A2E7", "#04A2E7", "#05A3E7", "#0CAAEB", "#14B1EF", "#19B6F2",
+"#19B6F2", "#19B6F2", "#1DB7EB", "#27B9DF", "#30BCD3", "#33BDD0",
+"#33BDD0", "#33BDD0", "#42C2CF", "#55C7CF", "#66CDCF", "#66CDCF",
+"#66CDCF", "#6ACECD", "#7CD3C5", "#8ED8BD", "#9ADCB9", "#9ADCB9",
+"#9ADCB9", "#A1DEAF", "#AFE19E", "#BDE58D", "#C1E689", "#C1E689",
+"#C1E689", "#C4E674", "#C9E65F", "#CDE74B", "#CDE74B", "#CDE74B",
+"#D0E746", "#DEEB36", "#ECEE26", "#F4F11D", "#F4F11D", "#F4F11D",
+"#F6ED1F", "#FAE622", "#FEE026", "#FFDF27", "#FFDF27", "#FFDF27",
+"#FED71C", "#FDCF11", "#FDC807", "#FDC807", "#FDC807", "#FCC307",
+"#FBB40A", "#F9A60C", "#F99E0E", "#F99E0E", "#F99E0E", "#F8940F",
+"#F78412", "#F67514", "#F67215", "#F67215", "#F67215", "#F46317",
+"#F35419", "#F2471C", "#F2471C", "#F2471C", "#EF421D", "#E73320",
+"#DF2524", "#DC1E26", "#DC1E26", "#DC1E26", "#CF1F27", "#BB2229",
+"#A8252B", "#A5262C", "#A5262C", "#A5262C")
+
+library(raster)
+poly_arg <- sf::st_read("data/argentina.gpkg")
+
+ene <- raster("data/temperature/Ene.tif")
+feb <- raster("data/temperature/Feb.tif")
+mar <- raster("data/temperature/Mar.tif")
+abr <- raster("data/temperature/Abr.tif")
+may <- raster("data/temperature/May.tif")
+jun <- raster("data/temperature/Jun.tif")
+jul <- raster("data/temperature/Jul.tif")
+ago <- raster("data/temperature/Ago.tif")
+sep <- raster("data/temperature/Sep.tif")
+oct <- raster("data/temperature/Oct.tif")
+nov <- raster("data/temperature/Nov.tif")
+dic <- raster("data/temperature/Dic.tif")
+
+temp <- stack(ene, feb, mar, abr,
+              may, jun, jul, ago,
+              sep, oct, nov, dic)
+
+mitmap <-
+  tm_basemap(leaflet::providers$Esri.WorldTopoMap) +
+  tm_shape(temp) +
+  tm_raster(title = "Temperatura (°C)",
+            style = "cont",
+            palette = my_temperatur_pallete
+            ) +
+  tm_shape(poly_arg) +
+  tm_borders() +
+  # tm_facets() +
+  tm_facets(
+    # as.layers = TRUE,
+    # nrow = 1, ncol = 1
+    ) +
+  tm_legend(legend.outside = TRUE)
+
+
+
+tmap_animation(mitmap, filename = 'img/animacion_Temp.gif')
+
+```
+
+
+---
+
+
+![](img/animacion_Temp.gif)
+
+![](img/animacion_Temp.gif)ba
+
+
+## Selección de variables con Aprendizaje Automático
+
+Importancia de las variables climáticas en cada patosistema con algoritmo 
+boruta y la selección de variables stepwise forward.
+
+
+### Resultados
+
+Predicen presencia del virus en maíz las precipitaciones elevadas en el 
+mes de enero y temperatura de punto de rocio alta en el mes de mayo.
+
+Predicen presencia de virus en trigo las precipitaciones elevadas en enero 
+y temperaturas bajas en junio.
+
+
+## Modelación Estadística con Modelos Jerárquicos 
+
+### Contexto:
+
+- Respuestas pueden afectarse una a otra 
+- Tamaños muestrales y sitios con observaciones no iguales
+
+*Aproximación Estadística*: _Joint spatial Bayesian regression model_
+
+----
+
+## Modelo
+
+
+$$
+\log{\left(\frac{p_{i.m}(S)}{1-p_{i.m}(S)}\right)} = 
+\alpha_{maíz} + x_{i1}(S)\beta_{1} + x_{i2}(S)\beta_{2} + x_{i3}(S)\beta_{3} +
+Z_{m}(S) + e_{m}(S)
+$$
+
+$$
+\log{\left(\frac{p_{i.t}(S)}{1-p_{i.t}(S)}\right)} = 
+\alpha_{trigo} + x_{i4}(S)\beta_{4} + x_{i5}(S)\beta_{5} + \lambda Z_{m}(S) +
+Z_{t} (S) + e_{t} (S)
+$$
+
+
+$$Z(S) \sim MVN(0, \Sigma)$$
+
+$\Sigma^{-1}$ (matriz de precisión) modelada vía un MRF resuelto por SPDE 
+
+Proyecciones de los efectos espaciales en una malla de predicción común.
+
+A priori de coeficientes de regresión sugeridas por modelos marginales. 
+
+
+## Ajsute del modelo
+
+### Fórmula 
+
+```{r}
+#| echo: true
+#| eval: false
+form <- y ~ -1 +
+  intercept_wsmv_maiz+
+  intercept_wsmv_trigo +
+  
+  total_precipitation_Mar_trigo +
+  total_precipitation_Ene_trigo+
+  total_precipitation_Ago_maiz +
+  viento_Sep_maiz+ 
+  
+  f(s1, model = spde) + 
+  f(s2, model = spde) + 
+  f(s12, copy = "s1", fixed = FALSE)
+```
+
+
+
+## Resultados
+
+
+
+```{r}
+#| layout-ncol: 2
+#| tbl-cap: 
+#|   - "Distribuci[on a posteriori"
+#| tbl-subcap: 
+#|   - "Coeficientes de regresión"
+#|   - "Hiperparámetros"
+
+
+
+param <-
+  c(
+    'intercept_wsmv_maiz',
+    'intercept_wsmv_trigo',
+    'total_precipitation_Mar_trigo',
+    'total_precipitation_Ene_trigo',
+    'total_precipitation_Ago_maiz',
+    'viento_Sep_maiz'
+  )
+
+
+media <- c(0.034,
+           -0.058,
+           -0.189,
+           -0.057,
+           0.199,
+           -0.630)
+
+stdDev <- c(31.29,
+            31.19,
+            0.040,
+            0.040,
+            0.120,
+            0.118)
+
+param <- data.frame("Coeficiente" = param, "Media" = media, "SD" = stdDev)
+
+
+kableExtra::kable(
+  param,
+  escape = FALSE,
+  format = "html",
+  digits = 2
+) |>
+ kableExtra::kable_paper("striped", full_width = F)
+
+
+
+# result <- readRDS('results/inla_results.RDS')
+
+param <- c('Range for s1', 'Stdev for s1', 'Range for s2', 'Stdev for s2', 'Beta for s12')
+
+
+stdDev <- c(3793.68,
+            8.82,
+            4088.44,
+            30.15,
+            0.316)
+
+media <- c(4046.55,
+            1.99,
+            4148.95,
+            4.19,
+            0.99)
+hyperparam <- data.frame("Coeficiente" = param, 
+                         "Media" = media, 
+                         "SD" = stdDev)
+
+
+kableExtra::kable(
+  hyperparam,
+  escape = FALSE,
+  format = "html",
+  digits = 2
+) |>
+ kableExtra::kable_paper("striped", full_width = F)
+
+
+```
+
+
+
+## Validación del modelo
+
+Validación cruzada k-fold, con un k = 10, para cada cultivo.
+
+Medidas del desempeño predictivo
+
+```{r}
+
+colnames_1 <- rep(c("Precisión", "Sensibilidad", "Especificidad", "AUC"), 2)
+
+Maíz <- c(#'Trigo',
+          79.55,	76.39,	84.40,	0.803,	89.04,	83.67,	99.10,	0.918)
+
+Trigo <- c(#'Maíz',
+          60.36,	60.20,	61.70,	0.609,	67.26,	66.28,	70.59,	0.684)
+
+df <- rbind(Maíz, Trigo)
+
+kableExtra::kable(df,
+                  escape = FALSE,
+                  format = "html",
+                  digits = 3) |>
+  kableExtra::kable_paper("hover", full_width = F) |>
+  kableExtra::add_header_above(c(" ", colnames_1))  |>
+  kableExtra::add_header_above(c(" ", "Marginal" = 4, "Conjunta" = 4), align = "l")  |>
+  kableExtra::add_header_above(c("WSMV" = 9)) |>
+  kableExtra::kable_paper("striped", full_width = F)
+
+```
+
+
+# Comentarios Finales
+
+- Los algoritmos de AA facilitaron la selección de variables con capacidad 
+predictiva.
+- La modelación conjunta permitió aumentar la capacidad predictiva de la 
+presencia de virus en el cultivo de trigo en relación con el clima respecto a la 
+obtenida en el modelo marginal con las mismas regresoras.
+- El modelo estadístico provee un mecanismo para mapeo digital de ambos procesos
+y su incertidumbre en cada sitio.
+- La Estadística es Ciencia de Datos.
