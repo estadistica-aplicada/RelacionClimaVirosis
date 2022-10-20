@@ -1,16 +1,11 @@
 ---
-title: "Relación clima-virosis en cultivos"
-subtitle: "Desde el Aprendizaje Automático a la Modelación Estadística"
-author: "Prof. Mónica Balzarini"
-institute: "Maestría en estadística aplicada </br> Universidad Nacional de Córdoba"
+title: "."
 format: 
     revealjs:
       echo: false
       cache: false
-      auto-stretch: true
       center: true
       theme: style/theme.scss
-      multiplex: true
       title-slide-attributes:
           data-background-image: img/logo25.png
           data-background-size: cover  
@@ -20,43 +15,60 @@ format:
 
 
 
-# Relación clima-virosis en cultivos
+<!-- title: "Relación clima-virosis en cultivos:" -->
+<!-- subtitle: "Desde el Aprendizaje Automático a la Modelación Estadística" -->
+<!-- author: "Prof. Mónica Balzarini" -->
+<!-- institute: "Maestría en estadística aplicada </br> Universidad Nacional de Córdoba" -->
+<!-- output-file: index -->
 
-## Desde el Aprendizaje Automático a la Modelación Estadística
 
+# Relación clima-virosis en cultivos: <br> Desde el Aprendizaje Automático a la Modelación Estadística
 
-:::: {.columns}
-
-::: {.column width="50%"}
-
-::: {style="text-align: center"}
 
 Prof. Mónica Balzarini
-
-:::
 
 Maestría en Estadística Aplicada
 
 Universidad Nacional de Córdoba
 
-
-:::
-
-::: {.column width="50%"}
-
-![](img/ufyma.png)
-
-:::
-
-::::
-
-![MEA](img/logo25.png)
+FCA - CONICET
 
 
+<!-- :::: {.columns} -->
+
+<!-- ::: {.column width="50%"} -->
+
+<!-- ::: {style="text-align: center"} -->
+
+<!-- Prof. Mónica Balzarini -->
+
+<!-- Maestría en Estadística Aplicada -->
+
+<!-- Universidad Nacional de Córdoba -->
+
+<!-- FCA - CONICET -->
+
+<!-- ::: -->
 
 
-# ¿Aprendizaje Automático es Estadística?
 
+
+<!-- ::: -->
+
+<!-- ::: {.column width="50%"} -->
+
+<!-- ![](img/ufyma.png) -->
+
+<!-- ::: -->
+
+<!-- :::: -->
+
+
+
+
+# ¿Aprendizaje Automático es Estadística? {background-color="#546e7a"}
+
+--- 
 
 :::: {.columns}
 
@@ -96,9 +108,14 @@ El AA, mayoritariamente, es estadística computacional con fines predictivos
 :::
 
 
-## ¿Qué es la Ciencia de Datos? (dramático crecimiento en popularidad)
+## ¿Qué es la Ciencia de Datos? {background-color="#546e7a"}
 
-"Ciencia de datos" se define como lo que hacen los "científicos de datos". 
+--- 
+
+
+## "Ciencia de datos" se define como lo que hacen los "científicos de datos"
+
+
 
 Adquisición y manipulación de datos, 
 
@@ -128,21 +145,28 @@ Sabermetría. Números vencen a la intuición.
 
 Datos y códigos abiertos (utilizados, reutilizados y redistribuidos libremente)
 hacen los análisis reproducibles y facilitan la adaptación del análisis a nuevos
-datos.
+excenarios.
 
 
 
-## ¿Aprendizaje automático o modelación estadística? ¿cuál es mejor? 
+## ¿Aprendizaje automático o modelación estadística? {background-color="#546e7a"}
+
+## ¿Cuál es mejor? 
+
 El fin (exploratorio/inferencial/predictivo) así como el volumen y 
 conceptualización de los datos (población/muestra) guían la elección de técnicas
 de análisis.
 
 Multiplicidad de técnicas de análisis de datos con resultados mayoritariamente
-convergentes o complementarios y deben ser entendidos como elementos que operan
+convergentes o complementarios que deben ser entendidos como elementos que operan
 en conjunto.
 
 
-#Ensamblando aprendizaje automático y modelación estadística 
+# Ensamblando aprendizaje automático y modelación estadística {background-color="#546e7a"}
+
+
+<!-- wheat streak mosaic virus (WSMV) -->
+
 
 # High Plains Wheat Mosaic Virus (HPWMoV) en cultivos de maíz y trigo en función del clima
 
@@ -236,6 +260,9 @@ conjunto de datos globalmente completo y consistente
 
 ::::
 
+
+## Convirtiendo dato climático a biometerológico
+
 Descarga con: Google Earth Engine, python conectado a GEE, R conectado a python y GEE
 
 Agregadas según momentos del ciclo de cultivo conformaron 117 variables 
@@ -244,7 +271,8 @@ biometeorológicas. Se obtuvieron valores mensuales para el periodo anual
 en los que se detecta el virus 
 
 
-## Variabilidad espacio-temporal de la temperatura
+## Variabilidad espacio-temporal de variables climáticas {background-color="#546e7a"}
+
 
 ```{r}
 #| eval: false
@@ -314,14 +342,19 @@ tmap_animation(mitmap, filename = 'img/animacion_Temp.gif')
 ```
 
 
-![Promedio mensual de temperatura](img/animacion_Temp.gif){fig-align="center"}
+---
 
+
+![](img/animacion_Temp.gif)
+
+![](img/animacion_Temp.gif)
 
 
 ## Selección de variables con Aprendizaje Automático
 
 Importancia de las variables climáticas en cada patosistema con algoritmo 
 boruta y la selección de variables stepwise forward.
+
 
 ### Resultados
 
@@ -343,28 +376,23 @@ y temperaturas bajas en junio.
 
 ----
 
-::: {style="font-size: 0.7em"}
+## Modelo
+
 
 $$
-\log{\left(\frac{p_{i.maíz}(S)}{1-p_{i.maiz}(S)}\right)} = 
-\alpha_{maíz} + x_{i1}(S)\beta_{1.maíz} + x_{i2}(S)\beta_{2.maíz} + x_{i3}(S)\beta_{3.maíz} +
-Z_{maíz}(S) + e_{maíz}(S)
+\log{\left(\frac{p_{i.m}(S)}{1-p_{i.m}(S)}\right)} = 
+\alpha_{maíz} + x_{i1}(S)\beta_{1} + x_{i2}(S)\beta_{2} + x_{i3}(S)\beta_{3} +
+Z_{m}(S) + e_{m}(S)
 $$
 
 $$
-\log{\left(\frac{p_{i.trigo}(S)}{1-p_{i.trigo}(S)}\right)} = 
-\alpha_{trigo} + x_{i1}(S)\beta_{4.trigo} + x_{i5}(S)\beta_{5.trigo} + \lambda Z_{maíz}(S) +
-Z_{trigo} (S) + e_{trigo} (S)
+\log{\left(\frac{p_{i.t}(S)}{1-p_{i.t}(S)}\right)} = 
+\alpha_{trigo} + x_{i4}(S)\beta_{4} + x_{i5}(S)\beta_{5} + \lambda Z_{m}(S) +
+Z_{t} (S) + e_{t} (S)
 $$
 
-:::
 
-donde $\log{\left(\frac{p_ij}{1 - p_ij}\right)}$ es la función de enlace, $x_1$ 
-es el total de precipitaciones del mes de enero, $x_2$ es la temperatura punto 
-rocío del mes de mayo y $x_3$ es el año en el que se tomó la muestra, $x_4$ 
-es la temperatura del mes de junio, $Z$ es el efecto espacial
-
-$$Z.(S) \sim MVM(0, \Sigma)$$
+$$Z(S) \sim MVN(0, \Sigma)$$
 
 $\Sigma^{-1}$ (matriz de precisión) modelada vía un MRF resuelto por SPDE 
 
@@ -525,6 +553,8 @@ saveRDS(result,
 
 ### Resultados
 
+#### Coeficientes de regresión
+
 ```{r, results='asis'}
 result <- readRDS('results/inla_results.RDS')
 
@@ -536,14 +566,22 @@ kableExtra::kable(
 ) |>
  kableExtra::kable_paper("striped", full_width = F)
 
+```
 
+---
+
+### Resultados
+
+#### Hiperparámetros
+
+```{r, results='asis'}
 kableExtra::kable(
   result$summary.hyperpar,
   escape = FALSE,
   format = "html",
   digits = 3
 ) |>
- kableExtra::kable_paper("hover", full_width = F)
+ kableExtra::kable_paper("striped", full_width = F)
 
 ```
 
@@ -557,7 +595,7 @@ Medidas del desempeño predictivo
 
 ```{r}
 
-colnames_1 <- rep(c("Accuracy", "Sensibilidad", "Especificidad", "AUC"), 2)
+colnames_1 <- rep(c("Precisión", "Sensibilidad", "Especificidad", "AUC"), 2)
 
 Maíz <- c(#'Trigo',
           58.12,
