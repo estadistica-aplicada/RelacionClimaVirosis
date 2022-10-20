@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+/.quarto/
+
+*.docx
+Ej03.qmd
+raster_armado_gif.R
