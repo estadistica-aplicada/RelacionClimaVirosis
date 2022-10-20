@@ -424,10 +424,15 @@ form <- y ~ -1 +
 
 ### Resultados
 
-#### Coeficientes de regresión
 
-
-```{r, results='asis'}
+```{r}
+#| layout-ncol: 2
+#| tbl-cap: 
+#|   - "Estimaciones 1"
+#|   - "Estimaciones 2"
+#| tbl-subcap: 
+#|   - "Coeficientes de regresión"
+#|   - "Hiperparámetros"
 
 
 
@@ -468,15 +473,6 @@ kableExtra::kable(
  kableExtra::kable_paper("striped", full_width = F)
 
 
-```
-
----
-
-### Resultados
-
-#### Hiperparámetros
-
-```{r, results='asis'}
 
 # result <- readRDS('results/inla_results.RDS')
 
