@@ -184,11 +184,11 @@ tmap_mode("view")
 
 trigo_maiz <- st_read("data/trigo_maiz_26_09_22.gpkg",quiet = TRUE)
 st_geometry(trigo_maiz) <- 'geometry' 
-trigo_maiz$HPV <- as.factor(trigo_maiz$HPV)
+trigo_maiz$WSMV <- as.factor(trigo_maiz$WSMV)
   
 
 hpv_maiz <- trigo_maiz |> 
-  filter(Especie == "Maíz" & !is.na(HPV))
+  filter(Especie == "Maíz" & !is.na(WSMV))
 hpv_maiz <-
   hpv_maiz[!hpv_maiz$Provincia %in%
               c('Catamarca',
@@ -200,7 +200,7 @@ hpv_maiz <-
 
 
 hpv_trigo <- trigo_maiz |> 
-  filter(Especie == "Trigo" & !is.na(HPV)) 
+  filter(Especie == "Trigo" & !is.na(WSMV)) 
 
 ```
 
@@ -345,7 +345,7 @@ tmap_animation(mitmap, filename = 'img/animacion_Temp.gif')
 
 ![](img/animacion_Temp.gif)
 
-![](img/animacion_Temp.gif)
+![](img/animacion_Temp.gif)ba
 
 
 ## Selección de variables con Aprendizaje Automático
